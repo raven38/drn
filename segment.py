@@ -76,8 +76,6 @@ def fill_up_weights(up):
                 (1 - math.fabs(i / f - c)) * (1 - math.fabs(j / f - c))
     for c in range(1, w.size(0)):
         w[c, 0, :, :] = w[0, 0, :, :]
-
-
 class DRNSeg(nn.Module):
     def __init__(self, model_name, classes, pretrained_model=None,
                  pretrained=True, use_torch_up=False):
@@ -133,10 +131,10 @@ class SegList(torch.utils.data.Dataset):
         self.read_lists()
 
     def __getitem__(self, index):
-        data = [Image.open(join(self.data_dir, self.image_list[index]))]
+        data = [Image.open(join(self.data_dir, self.image_list[index])).resize((512, 256), Image.NEAREST)]
         if self.label_list is not None:
             data.append(Image.open(
-                join(self.data_dir, self.label_list[index])))
+                join(self.data_dir, self.label_list[index])).resize((512, 256), Image.NEAREST))
         data = list(self.transforms(*data))
         if self.out_name:
             if self.label_list is None:
@@ -211,7 +209,7 @@ def validate(val_loader, model, criterion, eval_score=None, print_freq=10):
                                torch.nn.modules.loss.MSELoss]:
             target = target.float()
         input = input.cuda()
-        target = target.cuda(async=True)
+        target = target.cuda(non_blocking=True)
         input_var = torch.autograd.Variable(input, volatile=True)
         target_var = torch.autograd.Variable(target, volatile=True)
 
@@ -294,7 +292,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
             target = target.float()
 
         input = input.cuda()
-        target = target.cuda(async=True)
+        target = target.cuda(non_blocking=True)
         input_var = torch.autograd.Variable(input)
         target_var = torch.autograd.Variable(target)
 
@@ -450,10 +448,18 @@ def adjust_learning_rate(args, optimizer, epoch):
 
 
 def fast_hist(pred, label, n):
+    print(pred.shape, label.shape)
     k = (label >= 0) & (label < n)
     return np.bincount(
         n * label[k].astype(int) + pred[k], minlength=n ** 2).reshape(n, n)
 
+
+def pixel_accuracy(hist):
+    return np.diag(hist).sum() / (hist.sum() + 1e-12)
+
+
+def class_accuracy(hist):
+    return np.diag(hist) / (hist.sum(1) + 1e-12)
 
 def per_class_iu(hist):
     return np.diag(hist) / (hist.sum(1) + hist.sum(0) - np.diag(hist))
@@ -520,8 +526,9 @@ def test(eval_data_loader, model, num_classes,
                             data_time=data_time))
     if has_gt: #val
         ious = per_class_iu(hist) * 100
+        acc = pixel_accuracy(hist)
         logger.info(' '.join('{:.03f}'.format(i) for i in ious))
-        return round(np.nanmean(ious), 2)
+        return round(np.nanmean(ious), 2), acc
 
 
 def resize_4d_tensor(tensor, width, height):
@@ -606,8 +613,9 @@ def test_ms(eval_data_loader, model, num_classes, scales,
                             data_time=data_time))
     if has_gt: #val
         ious = per_class_iu(hist) * 100
+        acc = pixel_accuracy(hist)
         logger.info(' '.join('{:.03f}'.format(i) for i in ious))
-        return round(np.nanmean(ious), 2)
+        return round(np.nanmean(ious), 2), acc
 
 
 def test_seg(args):
@@ -667,14 +675,14 @@ def test_seg(args):
         out_dir += '_ms'
 
     if args.ms:
-        mAP = test_ms(test_loader, model, args.classes, save_vis=True,
+        mAP, acc = test_ms(test_loader, model, args.classes, save_vis=True,
                       has_gt=phase != 'test' or args.with_gt,
                       output_dir=out_dir,
                       scales=scales)
     else:
-        mAP = test(test_loader, model, args.classes, save_vis=True,
+        mAP, acc = test(test_loader, model, args.classes, save_vis=True,
                    has_gt=phase != 'test' or args.with_gt, output_dir=out_dir)
-    logger.info('mAP: %f', mAP)
+    logger.info('mAP: %f, Acc: %f', mAP, acc)
 
 
 def parse_args():
