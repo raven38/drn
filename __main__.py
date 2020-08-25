@@ -1,3 +1,0 @@
-import segment
-
-segment.main()
