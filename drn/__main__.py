@@ -1,3 +1,3 @@
 import drn.segment
 
-segment.main()
+drn.segment.main()
