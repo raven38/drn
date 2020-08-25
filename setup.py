@@ -23,7 +23,7 @@ setuptools.setup(
     python_requires='>=3.5',
     entry_points={
         'console_scripts': [
-            'drn = segment:main',
+            'drn = drn.segment:main',
         ],
     },
     install_requires=[
