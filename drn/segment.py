@@ -23,7 +23,7 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.autograd import Variable
 
-import drn.model
+import drn.model as models
 import drn.data_transforms as transforms
 
 try:
@@ -80,7 +80,7 @@ class DRNSeg(nn.Module):
     def __init__(self, model_name, classes, pretrained_model=None,
                  pretrained=True, use_torch_up=False):
         super(DRNSeg, self).__init__()
-        model = drn.__dict__.get(model_name)(
+        model = models.__dict__.get(model_name)(
             pretrained=pretrained, num_classes=1000)
         pmodel = nn.DataParallel(model)
         if pretrained_model is not None:
