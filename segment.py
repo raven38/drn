@@ -168,11 +168,11 @@ class SegListMS(torch.utils.data.Dataset):
         self.scales = scales
 
     def __getitem__(self, index):
-        data = [Image.open(join(self.data_dir, self.image_list[index]))]
+        data = [Image.open(join(self.data_dir, self.image_list[index])).resize((512, 256), Image.NEAREST)]
         w, h = data[0].size
         if self.label_list is not None:
             data.append(Image.open(
-                join(self.data_dir, self.label_list[index])))
+                join(self.data_dir, self.label_list[index])).resize((512, 256), Image.NEAREST))
         # data = list(self.transforms(*data))
         out_data = list(self.transforms(*data))
         ms_images = [self.transforms(data[0].resize((int(w * s), int(h * s)),
@@ -448,7 +448,6 @@ def adjust_learning_rate(args, optimizer, epoch):
 
 
 def fast_hist(pred, label, n):
-    print(pred.shape, label.shape)
     k = (label >= 0) & (label < n)
     return np.bincount(
         n * label[k].astype(int) + pred[k], minlength=n ** 2).reshape(n, n)
@@ -588,9 +587,10 @@ def test_ms(eval_data_loader, model, num_classes, scales,
         # pdb.set_trace()
         outputs = []
         for image in images:
-            image_var = Variable(image, requires_grad=False, volatile=True)
-            final = model(image_var)[0]
-            outputs.append(final.data)
+            with torch.no_grad():
+                # image_var = Variable(image, requires_grad=False, volatile=True)
+                final = model(image)[0]
+                outputs.append(final.data)
         final = sum([resize_4d_tensor(out, w, h) for out in outputs])
         # _, pred = torch.max(torch.from_numpy(final), 1)
         # pred = pred.cpu().numpy()
