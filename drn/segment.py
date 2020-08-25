@@ -23,7 +23,7 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.autograd import Variable
 
-import drn.drn
+import drn.model
 import drn.data_transforms as transforms
 
 try:
