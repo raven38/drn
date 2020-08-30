@@ -182,11 +182,17 @@ class SegListMS(torch.utils.data.Dataset):
         self.scales = scales
 
     def __getitem__(self, index):
-        data = [Image.open(join(self.data_dir, self.image_list[index])).resize((512, 256), Image.NEAREST)]
+        if os.path.exists(str(self.image_list[index])):
+            data = [Image.open(self.image_list[index]).resize((512, 256), Image.NEAREST)]
+        else:
+            data = [Image.open(join(self.data_dir, self.image_list[index])).resize((512, 256), Image.NEAREST)]
         w, h = data[0].size
         if self.label_list is not None:
-            data.append(Image.open(
-                join(self.data_dir, self.label_list[index])).resize((512, 256), Image.NEAREST))
+            if os.path.exists(str(self.label_list[index])):
+                data.append(Image.open(self.label_list[index]).resize((512, 256), Image.NEAREST))
+            else:
+                data.append(Image.open(
+                    join(self.data_dir, self.label_list[index])).resize((512, 256), Image.NEAREST))
         # data = list(self.transforms(*data))
         out_data = list(self.transforms(*data))
         ms_images = [self.transforms(data[0].resize((int(w * s), int(h * s)),
