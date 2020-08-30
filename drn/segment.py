@@ -172,7 +172,6 @@ class SegListMS(torch.utils.data.Dataset):
                 list(sorted(Path(seg_dir).glob("**/*trainIds.png")))
         else:
             self.read_lists()
-        print(len(self.image_list), len(self.label_list))
         assert len(self.image_list) == len(self.label_list)
         self.scales = scales
 
@@ -187,7 +186,7 @@ class SegListMS(torch.utils.data.Dataset):
         ms_images = [self.transforms(data[0].resize((int(w * s), int(h * s)),
                                                     Image.BICUBIC))[0]
                      for s in self.scales]
-        out_data.append(self.image_list[index])
+        out_data.append(str(self.image_list[index]))
         out_data.extend(ms_images)
         return tuple(out_data)
 
