@@ -169,10 +169,9 @@ class SegListMS(torch.utils.data.Dataset):
             self.image_list = list(sorted(Path(img_dir).glob("**/*.jpg"))) + \
                 list(sorted(Path(img_dir).glob("**/*.png")))
             self.label_list = list(sorted(Path(seg_dir).glob("**/*.jpg"))) + \
-                list(sorted(Path(seg_dir).glob("**/*.trainIds.png")))
+                list(sorted(Path(seg_dir).glob("**/*trainIds.png")))
         else:
             self.read_lists()
-        print(len(self.image_list), len(self.label_list))
         assert len(self.image_list) == len(self.label_list)
         self.scales = scales
 
