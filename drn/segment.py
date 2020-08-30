@@ -172,6 +172,7 @@ class SegListMS(torch.utils.data.Dataset):
                 list(sorted(Path(seg_dir).glob("**/*.trainIds.png")))
         else:
             self.read_lists()
+        print(len(self.image_list), len(self.label_list))
         assert len(self.image_list) == len(self.label_list)
         self.scales = scales
 
