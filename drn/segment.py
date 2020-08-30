@@ -156,7 +156,7 @@ class SegList(torch.utils.data.Dataset):
 
 
 class SegListMS(torch.utils.data.Dataset):
-    def __init__(self, data_dir, phase, transforms, scales, list_dir=None img_dir=None, seg_dir=None):
+    def __init__(self, data_dir, phase, transforms, scales, list_dir=None, img_dir=None, seg_dir=None):
         self.list_dir = data_dir if list_dir is None else list_dir
         self.data_dir = data_dir
         self.phase = phase
