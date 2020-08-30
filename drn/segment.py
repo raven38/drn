@@ -647,7 +647,7 @@ def test_seg(args):
         dataset = SegListMS(data_dir, phase, transforms.Compose([
             transforms.ToTensor(),
             normalize,
-        ]), scales, list_dir=args.list_dir, args.img_dir, args.seg_dir)
+        ]), scales, list_dir=args.list_dir, img_dir=args.img_dir, seg_dir=args.seg_dir)
     else:
         dataset = SegList(data_dir, phase, transforms.Compose([
             transforms.ToTensor(),
