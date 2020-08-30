@@ -156,7 +156,7 @@ class SegList(torch.utils.data.Dataset):
 
 
 class SegListMS(torch.utils.data.Dataset):
-    def __init__(self, data_dir, phase, transforms, scales, list_dir=None):
+    def __init__(self, data_dir, phase, transforms, scales, list_dir=None img_dir=None, seg_dir=None):
         self.list_dir = data_dir if list_dir is None else list_dir
         self.data_dir = data_dir
         self.phase = phase
@@ -164,7 +164,14 @@ class SegListMS(torch.utils.data.Dataset):
         self.image_list = None
         self.label_list = None
         self.bbox_list = None
-        self.read_lists()
+        if seg_dir and img_dir:
+            self.image_list = list(sorted(Path(img_dir).glob("**/*.jpg"))) + \
+                list(sorted(Path(img_dir).glob("**/*.png")))
+            self.label_list = list(sorted(Path(seg_dir).glob("**/*.jpg"))) + \
+                list(sorted(Path(seg_dir).glob("**/*.png")))
+        else:
+            self.read_lists()
+        assert len(self.image_list) == len(self.label_list)
         self.scales = scales
 
     def __getitem__(self, index):
@@ -640,7 +647,7 @@ def test_seg(args):
         dataset = SegListMS(data_dir, phase, transforms.Compose([
             transforms.ToTensor(),
             normalize,
-        ]), scales, list_dir=args.list_dir)
+        ]), scales, list_dir=args.list_dir, args.img_dir, args.seg_dir)
     else:
         dataset = SegList(data_dir, phase, transforms.Compose([
             transforms.ToTensor(),
@@ -731,6 +738,8 @@ def parse_args():
                         help='Turn on multi-scale testing')
     parser.add_argument('--with-gt', action='store_true')
     parser.add_argument('--test-suffix', default='', type=str)
+    parser.add_argument('--img-dir', '--img_dir', default=None, type=str)
+    parser.add_argument('--seg-dir', '--seg_dir', default=None, type=str)
     args = parser.parse_args()
 
     assert args.classes > 0
